@@ -2,7 +2,7 @@
 myPing
 ==============================================================================
 Author:   RW Martin
-Version:  0.1.0
+Version:  1.1.0
 Date:     22.12.2018
 For documentation please visit https://github.com/rwmartin/myPing
 ==============================================================================
@@ -43,7 +43,6 @@ def testHosts():
 
         # create tuple and append it to the list
         myList.append((float(avg),host))
-
 
     myList=sorted(myList,key=lambda host: host[0])
     return (myList[0])
