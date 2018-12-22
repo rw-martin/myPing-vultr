@@ -11,10 +11,17 @@ For documentation please visit https://github.com/rwmartin/myPing
 import os
 import re
 import subprocess
+import time
+from typing import Any, Union
 
 packetCount = '1'
+reportLine=[]
+index=0
 
-def testHosts():
+timestr = time.strftime("%Y%m%d%H%M%S")
+fileName: str = 'myPing-'+timestr+'.txt'
+
+def testhosts(reportLine):
     myList = []
     # hosts.txt contains vultr sites
     hosts = os.path.join('hosts.txt')
@@ -36,16 +43,37 @@ def testHosts():
         out = ping.communicate()
         report = re.findall("(\d+.\d+)",str(out[0]))
 
+        #get host IP address
+        ipAddr = re.findall("\d+.\d+.\d+.\d+", str(out[0]))[0]
+
         # assign relevant list items
         packet = report[2]
-        avg = report[4]
-        print (host +" packet loss = "+packet+"%, round-trip average = "+avg)
+        if float(packet) == 100:
+            avg = '9999.0'
+        else:
+            avg = report[4]
+
+        info = host +" ("+ipAddr+") pkt loss = "+packet+"%, round-trip average = "+avg
+        print (info)
 
         # create tuple and append it to the list
-        myList.append((float(avg),host))
+        myList.append((float(avg),host,ipAddr))
 
     myList=sorted(myList,key=lambda host: host[0])
-    return (myList[0])
+    return (myList)
 
-results = testHosts()
-print (str ("\nHost with the quickest return trip is "+results[1]) + " (" + str(results[0])+" ms)")
+results = testhosts(reportLine)
+status: str = (str ("\nHost with the quickest return trip is "+results[0][1] + " (" + str(float(results[0][0]))+" ms)"))
+print (status)
+
+for line in results:
+    if line[0] == 9999:
+        line[0]= "FAILED"
+    info: Union[str, Any] = line[1] + " (" + line[2] + '), round-trip average = ' + str(line[0]) + '\n'
+    results[index] = info
+    index+=1
+
+file = open(fileName,'w')
+file.writelines(results)
+file.writelines(status)
+file.close()
